@@ -1,10 +1,23 @@
-export default function LandingPage() {
+import Navbar from "../components/layout/Navbar";
+import Footer from "../components/layout/Footer";
+import HeroSection from "../components/landing/HeroSection";
+import FeaturesSection from "../components/landing/FeaturesSection";
+import HowItWorks from "../components/landing/HowItWorks";
+import CTASection from "../components/landing/CTASection";
+
+const LandingPage = () => {
   return (
-    <div className="text-center mt-20">
-      <h1 className="text-4xl font-bold">CareerForge Arena</h1>
-      <p className="mt-4 text-gray-400">
-        Level up your coding like a game 🎮
-      </p>
+    <div className="min-h-screen bg-[#050a14] text-white font-sans antialiased">
+      <Navbar />
+      <main>
+        <HeroSection />
+        <FeaturesSection />
+        <HowItWorks />
+        <CTASection />
+      </main>
+      <Footer />
     </div>
   );
-}
+};
+
+export default LandingPage;
