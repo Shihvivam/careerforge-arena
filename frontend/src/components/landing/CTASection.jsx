@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Button from "../common/Button";
 import Container from "../common/Container";
 
@@ -46,9 +47,11 @@ const CTASection = () => {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-center gap-4">
+              <Link to="/signup">
               <Button size="lg" className="shadow-[0_0_32px_rgba(34,211,238,0.25)]">
                 Join Now 🚀
               </Button>
+              </Link>
               <Button variant="ghost" size="lg">
                 Explore Challenges
               </Button>
