@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom"; // Import Link
 import Button from "../common/Button";
 import Container from "../common/Container";
 
@@ -16,8 +17,8 @@ const Navbar = () => {
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#050a14]/80 backdrop-blur-xl">
       <Container>
         <nav className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <a href="#" className="flex items-center gap-3 group">
+          {/* Logo - Connect to Home */}
+          <Link to="/" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded bg-cyan-400 flex items-center justify-center shadow-[0_0_16px_rgba(34,211,238,0.4)] group-hover:shadow-[0_0_24px_rgba(34,211,238,0.7)] transition-all duration-300">
               <span className="text-black font-black text-sm tracking-tight">CF</span>
             </div>
@@ -25,9 +26,9 @@ const Navbar = () => {
               Career<span className="text-cyan-400">Forge</span>{" "}
               <span className="text-gray-500 font-semibold text-sm">Arena</span>
             </span>
-          </a>
+          </Link>
 
-          {/* Desktop Links */}
+          {/* Desktop Links (Keep as <a> for scroll-to-id anchors) */}
           <ul className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <li key={link.label}>
@@ -41,12 +42,18 @@ const Navbar = () => {
             ))}
           </ul>
 
-          {/* CTA */}
+          {/* CTA - Connected to Login and Signup */}
           <div className="hidden md:flex items-center gap-3">
-            <a href="#" className="text-sm text-gray-400 hover:text-white transition-colors duration-200">
+            <Link 
+              to="/login" 
+              className="text-sm text-gray-400 hover:text-white transition-colors duration-200"
+            >
               Sign In
-            </a>
-            <Button size="sm">Play Free</Button>
+            </Link>
+            {/* Wrap Button in Link to Signup */}
+            <Link to="/signup">
+              <Button size="sm">Play Free</Button>
+            </Link>
           </div>
 
           {/* Mobile Hamburger */}
@@ -75,9 +82,13 @@ const Navbar = () => {
                 {link.label}
               </a>
             ))}
-            <Button size="sm" className="w-fit mt-2">
-              Play Free
-            </Button>
+            {/* Mobile Auth Links */}
+            <Link to="/login" onClick={() => setMenuOpen(false)} className="text-gray-400 text-sm">Sign In</Link>
+            <Link to="/signup" onClick={() => setMenuOpen(false)}>
+              <Button size="sm" className="w-fit mt-2">
+                Play Free
+              </Button>
+            </Link>
           </Container>
         </div>
       )}

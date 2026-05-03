@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import Button from "../common/Button";
 import Container from "../common/Container";
 
@@ -54,7 +55,9 @@ const HeroSection = () => {
 
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center gap-4 mt-2">
+            <Link to="/login">
             <Button size="lg">Start Playing Free</Button>
+            </Link> 
             <button className="flex items-center gap-3 text-gray-400 hover:text-white transition-colors duration-200 group">
               <span className="w-11 h-11 rounded-full border border-white/10 flex items-center justify-center group-hover:border-purple-500/50 transition-colors duration-300">
                 <span className="text-purple-400 text-sm ml-0.5">▶</span>
