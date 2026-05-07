@@ -1,64 +1,56 @@
 """
 app/db/mongo.py
-Async MongoDB connection using Motor with automatic credential encoding.
+Async MongoDB connection via Motor.
+One client, one database — module-level singletons injected at startup.
 """
 
-from motor.motor_asyncio import AsyncIOMotorClient
+from __future__ import annotations
+
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from pymongo import ASCENDING
-import os
-import urllib.parse
-from dotenv import load_dotenv
 
-load_dotenv()
+from app.core.config import settings
 
-# ── Build connection string safely ────────────────────────────────────────
-_username   = os.getenv("MONGO_USERNAME")
-_password   = os.getenv("MONGO_PASSWORD")
-_cluster    = os.getenv("MONGO_CLUSTER")
-_app_name   = os.getenv("MONGO_APP_NAME", "CareerForge-Arena-Cluster")
-_db_name    = os.getenv("MONGO_DB_NAME", "careerforge")
+_client: AsyncIOMotorClient | None = None
+_db:     AsyncIOMotorDatabase | None = None
 
-# Automatically encode username and password to handle special characters like '@'
-if _username and _password:
-    _user_encoded = urllib.parse.quote_plus(_username)
-    _pass_encoded = urllib.parse.quote_plus(_password)
-    
-    MONGO_URI = (
-        f"mongodb+srv://{_user_encoded}:{_pass_encoded}@{_cluster}/"
-        f"?retryWrites=true&w=majority&appName={_app_name}"
+
+def get_db() -> AsyncIOMotorDatabase:
+    if _db is None:
+        raise RuntimeError(
+            "Database not initialised. "
+            "Ensure connect_db() was called in the application lifespan."
+        )
+    return _db
+
+
+async def connect_db() -> None:
+    global _client, _db
+
+    _client = AsyncIOMotorClient(
+        settings.MONGODB_URL,
+        serverSelectionTimeoutMS=5_000,
+        connectTimeoutMS=10_000,
+        maxPoolSize=50,
+        minPoolSize=5,
     )
-else:
-    # Fallback to a dummy string to avoid "none" errors during initialization
-    MONGO_URI = "mongodb://localhost:27017"
+    _db = _client[settings.MONGO_DB_NAME]
 
-# ── Module-level singletons ────────────────────────────────────────────────
-client: AsyncIOMotorClient | None = None
-db = None
+    await _client.admin.command("ping")
+    print(f"[DB] Connected to MongoDB — database: '{settings.MONGO_DB_NAME}'")
 
-def get_db():
-    if db is None:
-        raise RuntimeError("Database not initialised — call connect_db() first.")
-    return db
+    await _db["users"].create_index([("email", ASCENDING)], unique=True, name="unique_email")
+    await _db["challenges"].create_index([("slug", ASCENDING)], unique=True, name="unique_slug")
+    await _db["challenges"].create_index([("difficulty", ASCENDING)])
+    await _db["challenges"].create_index([("category",   ASCENDING)])
+    await _db["submissions"].create_index([("user_id",      ASCENDING)])
+    await _db["submissions"].create_index([("challenge_id", ASCENDING)])
+    print("[DB] Indexes verified.")
 
-async def connect_db():
-    global client, db
-    
-    if not all([_username, _password, _cluster]):
-        print("[ERROR] MongoDB environment variables are missing!")
-        return
 
-    client = AsyncIOMotorClient(MONGO_URI)
-    db = client[_db_name]
-
-    try:
-        # Verify connection and ensure index
-        await db["users"].create_index([("email", ASCENDING)], unique=True)
-        print(f"[DB] Connected to MongoDB — database: '{_db_name}'")
-    except Exception as e:
-        print(f"[DB] Connection failed: {e}")
-
-async def close_db():
-    global client
-    if client:
-        client.close()
+async def close_db() -> None:
+    global _client
+    if _client:
+        _client.close()
+        _client = None
         print("[DB] MongoDB connection closed.")
