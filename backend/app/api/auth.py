@@ -1,14 +1,3 @@
-"""
-app/api/auth.py  —  Authentication API routes (with email verification)
-
-POST /auth/signup               Register → sends verification email
-POST /auth/login                Login (blocked if unverified)
-GET  /auth/me                   Get current user (protected)
-POST /auth/logout               Logout acknowledgment
-GET  /auth/verify-email/{token} Verify email via token from link
-POST /auth/resend-verification  Resend verification email (rate-limited)
-"""
-
 from fastapi import APIRouter, Depends, status
 
 from app.core.config import settings
@@ -30,7 +19,12 @@ from app.services.auth_service import (
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+=======
+    LoginRequest, MessageResponse, SignupRequest, TokenResponse, UserPublic,
+)
+from app.services.auth_service import authenticate_user, create_user
 
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # ── POST /auth/signup ──────────────────────────────────────────────────────
 
@@ -116,3 +110,35 @@ async def resend_verification(body: ResendVerificationRequest) -> MessageRespons
         message="If that email is registered and unverified, "
                 "a new verification link has been sent. Please check your inbox."
     )
+=======
+
+@router.post("/signup", response_model=UserPublic, status_code=status.HTTP_201_CREATED,
+    summary="Register a new user")
+async def signup(body: SignupRequest) -> UserPublic:
+    """Hash password, store user, return public profile (no token — redirect to login)."""
+    return await create_user(name=body.name, email=body.email, password=body.password)
+
+
+@router.post("/login", response_model=TokenResponse, summary="Login and receive JWT")
+async def login(body: LoginRequest) -> TokenResponse:
+    """Authenticate with email+password, return signed JWT access token."""
+    user  = await authenticate_user(body.email, body.password)
+    token = create_access_token(subject=user.id)
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        user=user,
+    )
+
+
+@router.get("/me", response_model=UserPublic, summary="Get authenticated user")
+async def me(current_user: UserPublic = Depends(get_current_user)) -> UserPublic:
+    """Protected — validates Bearer JWT, returns current user. Used on every page load."""
+    return current_user
+
+
+@router.post("/logout", response_model=MessageResponse, summary="Logout acknowledgment")
+async def logout(_: UserPublic = Depends(get_current_user)) -> MessageResponse:
+    """Client removes token from localStorage. Future: add to Redis denylist."""
+    return MessageResponse(message="Logged out successfully.")

@@ -56,8 +56,6 @@ def get_settings() -> Settings:
     if s.APP_ENV == "production":
         s.validate()
     return s
-
-
 settings = get_settings()
 
 
@@ -74,3 +72,5 @@ Settings.FRONTEND_URL    = _os.getenv("FRONTEND_URL",    "http://localhost:5173"
 Settings.EMAIL_VERIFY_TOKEN_EXPIRE_SECONDS = int(
     _os.getenv("EMAIL_VERIFY_TOKEN_EXPIRE_SECONDS", "86400")
 )
+settings = get_settings()
+
