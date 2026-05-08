@@ -30,7 +30,16 @@ class SignupRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email:    EmailStr
+    email: EmailStr
+    password: str = Field(..., min_length=1)
+
+class MessageResponse(BaseModel):
+    """Simple message response schema."""
+    message: str
+
+# Add this under your LoginRequest class
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
     password: str = Field(..., min_length=1, max_length=128)
 
 
@@ -72,9 +81,10 @@ class UserInDB(BaseModel):
     class Config:
         populate_by_name = True
 
-
+def doc_to_public(doc: dict) -> UserPublic:
+    """Convert a raw MongoDB document to UserPublic."""
 def user_doc_to_public(doc: dict) -> UserPublic:
-    return UserPublic(
+return UserPublic(
         id         = str(doc["_id"]),
         name       = doc["name"],
         email      = doc["email"],
