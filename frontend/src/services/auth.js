@@ -125,3 +125,25 @@ export const authResendVerification = async (email) => {
   const { data } = await api.post('/auth/resend-verification', { email })
   return data
 }
+
+
+// ── Dev-only helpers ────────────────────────────────────────────────────────
+
+/**
+ * [DEV] Fetch SMTP config status from backend.
+ * @returns {Promise<object>}
+ */
+export const authGetEmailConfig = async () => {
+  const { data } = await api.get('/auth/email-config')
+  return data
+}
+
+/**
+ * [DEV] Send a test email to verify Gmail App Password works.
+ * @param {string} toEmail
+ * @returns {Promise<{ message: string }>}
+ */
+export const authTestEmail = async (toEmail) => {
+  const { data } = await api.post('/auth/test-email', { to_email: toEmail })
+  return data
+}
